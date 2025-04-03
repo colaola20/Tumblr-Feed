@@ -6,13 +6,39 @@
 import UIKit
 import Nuke
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        print("numberOfRowInSection called with movies count: \(self.posts.count)")
+        return posts.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        print("cellForRowAt called for row: \(indexPath.row)")
+        let cell = tableView.dequeueReusableCell(withIdentifier: "PostCell", for: indexPath) as! PostCell
+        let post = posts[indexPath.row]
+        
+        cell.postImg.image = nil // Prevents old images from showing up while loading
+        
+        if let photo = post.photos.first {
+            let url = photo.originalSize.url
+            Nuke.loadImage(with: url, into: cell.postImg!)
+            
+            
+        }
+        
+        
+        cell.summaryLabel.text = post.summary
+        cell.postImg.image = nil
+        return cell
+    }
+    
 
-
+    @IBOutlet weak var tableView: UITableView!
+    private var posts: [Post] = []
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        
+        tableView.dataSource = self
         fetchPosts()
     }
 
@@ -43,7 +69,10 @@ class ViewController: UIViewController {
 
                     let posts = blog.response.posts
 
-
+                    self?.posts = posts
+                    
+                    self?.tableView.reloadData()
+                    
                     print("✅ We got \(posts.count) posts!")
                     for post in posts {
                         print("🍏 Summary: \(post.summary)")
